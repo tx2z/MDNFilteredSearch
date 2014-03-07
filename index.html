@@ -12,7 +12,7 @@
         
         
         <style>
-            #search {
+            .q {
                 border: 1px black dotted;
                 padding: 3px;
                 border-radius: 5px;
@@ -22,14 +22,21 @@
                 display: inline;
             }
 
-            .filters button{
+            .filters button.topic{
                 display: inline;
                 border: 2px violet dashed;
                 margin: 0 0.1em;
             }
 
-            #search input{
+            .q input{
                 display: inline;
+            }
+            
+            .search .suggestions{
+                width: 600px;
+                height: 200px;
+                
+                border: 1px violet dotted;
             }
         </style>
         
@@ -40,7 +47,7 @@
                 "use strict";
                 
                 // https://developer.mozilla.org/en-US/search.json?q=html5&per_page=100&topic=javascript&topic=html
-                var SEARCH_URL = 'https://developer.mozilla.org/en-US/search.json?q=weakmap';
+                var BASE_SEARCH_URL = 'https://developer.mozilla.org/en-US/search.json';
                 
                 
                 // prepare filter data
@@ -72,19 +79,14 @@
                 }
                 
                 
-                var search = $('#search');
+                var search = $('.q');
                 var searchFilters = search.find('.filters');
                 var searchInput = search.find('input')
                 
-                var previousInput = searchInput.val();
+                var previousValue = searchInput.val(); // it happens that the content is kept across refreshes
                 
-                // Open Q : other events than input?
-                searchInput.on('input', function(e){
-                    var input = e.target;
-                    
-                    console.log('input event', input.value);
-                    
-                    var toParse = input.value;
+                function parseAndAddFilters(){
+                    var toParse = searchInput.val();
                     var filter = true;
                     var filters = [];
                     while(filter){
@@ -95,20 +97,62 @@
                         }
                     }
                     
-                    filters.forEach(function(f){
-                        $('<button></button>').text(f).appendTo(searchFilters);
-                    });
+                    if(filters.length >= 1){
+                        filters.forEach(function(f){
+                            $('<button></button>')
+                                .text(f)
+                                .addClass('topic')
+                                .attr('data-topic', f.slice('#'.length))
+                                .appendTo(searchFilters);
+                        });
+                        $('form.search .suggestions').attr('hidden', 'hidden');
+                    }
                     
-                    input.value = toParse;
+                    searchInput.val(toParse);
+                }
+                
+                // Open Q : other events than input?
+                searchInput.on('input', function(e){
                     
+                    parseAndAddFilters();
                     
+                    // find out if there is a difference of exactly one # between input.value and previousValue
+                    // Current algorithm is very simple. Must be improved in the future
+                    // Currently consider only the last character
+                    if(searchInput.val().length - previousValue.length === 1 &&
+                       searchInput.val()[searchInput.val().length -1] === '#')
+                    {
+                        console.log('show');
+                        $('form.search .suggestions').removeAttr('hidden');
+                    }
+                    
+                    if(previousValue.length - searchInput.val().length === 1 &&
+                       previousValue[previousValue.length -1] === '#')
+                    {
+                        $('form.search .suggestions').attr('hidden', 'hidden');
+                    }
+                    
+                    previousValue = searchInput.val();
                 });
+                
+                $('form.search').on('submit', function(e){
+                    e.preventDefault();
                     
-                
-                
-                
-                
-                
+                    var topics = $.makeArray($('form.search .topic')).map(function(e){
+                        return encodeURIComponent($(e).attr('data-topic'));
+                    });
+                    var topicsString = topics
+                        .map(function(t){ return 'topic='+t; })
+                        .join('&');
+                    
+                    var q = encodeURIComponent(searchInput.val());
+                    
+                    var searchURL = BASE_SEARCH_URL + '?' +
+                        'q=' + q +
+                        '&' + topicsString;
+                    
+                    console.log('search URL', searchURL);
+                })
                 
                 document.removeEventListener('DOMContentLoaded', listener);
             });
@@ -131,12 +175,14 @@
             <button type="submit">go</button>            
         </form>
         -->
-        
-        <div id="search">
-            <div class="filters"></div>
-            <input type="text" name="q">
-        </div>
-        
+        <form class="search">
+            <div class="q">
+                <div class="filters"></div>
+                <input type="text" name="q">
+            </div>
+            <ul class="suggestions" hidden> 
+            </ul>
+        </form>
         
         
     </body>
