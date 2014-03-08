@@ -90,11 +90,12 @@
                 
                 var previousValue = searchInput.val(); // it happens that the content is kept across refreshes
                 
+                // f is a topic with the # ('#javascript', '#advanced')
                 function addFilter(f){
                     var filter = $('<span></span>')
-                        .text(f)
                         .addClass('topic')
                         .attr('data-topic', f.slice('#'.length))
+                        .text(f)
                         .appendTo(searchFilters);
 
                     $('<button></button>')
