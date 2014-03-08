@@ -123,17 +123,25 @@
 
                 function recoverTopics(f){
                     // clean suggestion div
-                    suggestions.html('');
+                    suggestions.empty();
                     $.each(filtersData, function(index, filter){
-                        var title = '<strong>' + filter.name + '</strong>';
+                        var title = $('<strong>').text(filter.name);
                         var ul = document.createElement("UL");
                         var show = false;
                         $.each(filter.options, function(index, option){
                             var slugNorm = option.slug.toLowerCase();
                             var nameNorm = removeAccents(option.name.toLowerCase());
                             if (!f || slugNorm.indexOf(removeAccents(f.toLowerCase())) != -1 || nameNorm.indexOf(removeAccents(f.toLowerCase())) != -1) {
-                                var li = '<li id="' + option.slug + '"><a href="#" onclick="createTag();return false;">' + option.name + ' : #' + option.slug + '</a></li>';
-                                $(ul).append(li);
+                                var $li = $('<li></li>')
+                                            .attr('id', option.slug);
+                                var $a = $('<a></a>')
+                                            .attr('href', '#')
+                                            .text(option.name + ' : #' + option.slug)
+                                            .appendTo($li)
+                                            .on('click', function(){
+                                                addFilter('#'+option.slug);
+                                            });
+                                $(ul).append($li);
                                 show = true;
                             }
                         });
