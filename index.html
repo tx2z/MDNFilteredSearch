@@ -22,10 +22,15 @@
                 display: inline;
             }
 
-            .filters button.topic{
+            .filters span.topic{
                 display: inline;
                 border: 2px violet dashed;
                 margin: 0 0.1em;
+            }
+
+            .filters span.topic button.close{
+                width: 30px;
+                height: 30px;
             }
 
             .q input{
@@ -85,6 +90,22 @@
                 
                 var previousValue = searchInput.val(); // it happens that the content is kept across refreshes
                 
+                function addFilter(f){
+                    var filter = $('<span></span>')
+                        .text(f)
+                        .addClass('topic')
+                        .attr('data-topic', f.slice('#'.length))
+                        .appendTo(searchFilters);
+
+                    $('<button></button>')
+                        .addClass('close')
+                        .text('x')
+                        .on('click', function(){
+                            $(filter).remove();
+                        })
+                        .appendTo(filter);
+                }
+                
                 function parseAndAddFilters(){
                     var toParse = searchInput.val();
                     var filter = true;
@@ -98,13 +119,7 @@
                     }
                     
                     if(filters.length >= 1){
-                        filters.forEach(function(f){
-                            $('<button></button>')
-                                .text(f)
-                                .addClass('topic')
-                                .attr('data-topic', f.slice('#'.length))
-                                .appendTo(searchFilters);
-                        });
+                        filters.forEach(addFilter);
                         $('form.search .suggestions').attr('hidden', 'hidden');
                     }
                     
